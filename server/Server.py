@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+import sys
 import socket
 import _thread as th
 from AudioTransformer import handle_file
@@ -7,10 +8,10 @@ import Config
 import time
 from file_player import Player
 
-TCP_IP = '138.251.29.205'
+TCP_IP = 'localhost'
 TCP_PORT = Config.PORT
 BUFFER_SIZE = 20  # Normally 1024, but we want fast response
-FILENAME = "test_files/test_muzzy.wav"
+FILENAME = "test_files/test.wav"
 
 def thread_handler(conn, addr):
     results = handle_file(FILENAME)
@@ -47,4 +48,4 @@ def main():
     conn.close()
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
