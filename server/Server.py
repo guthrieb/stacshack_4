@@ -1,14 +1,24 @@
 #!/usr/bin/env python
 import socket
 import _thread as th
+from AudioTransformer import handle_file
+import json
+import Config
+import time
 
 TCP_IP = '138.251.29.205'
-TCP_PORT = 1234
+TCP_PORT = Config.PORT
 BUFFER_SIZE = 20  # Normally 1024, but we want fast response
 
 def thread_handler(conn, addr):
-    message = "Hello, World!"
-    conn.send(message.encode())
+    results = handle_file("test_files/test_high_pitch.wav", 20000)
+
+    curFreq = 0
+    for ent in results:
+        data = [ent.tolist()]
+        json_data = json.dumps(data) + "|"
+
+        conn.send(json_data.encode())
 
 def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -18,7 +28,7 @@ def main():
     while True:
         print("Waiting for connection")
         conn, addr = s.accept()
-        th.start_new_thread(thread_handler, conn, addr)
+        th.start_new_thread(thread_handler, (conn, addr))
         print("Connection Accepted")
     conn.close()
 
