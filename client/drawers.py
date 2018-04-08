@@ -8,7 +8,7 @@ def pulse_render(screen, scrno, data, colours=[
         (255, 255, 255, 255)]):
     ratio = sum([sum(data[0]), sum(data[1])]) / len(data[0]) / SCALE_DOWN
     def segratio(i):
-        return int((colours[1][i] - colours[0][i]) * ratio + colours[0][i])
+        return int(min((colours[1][i] - colours[0][i]) * ratio + colours[0][i]), 255)
     colour = (segratio(0), segratio(1), segratio(2), segratio(3))
     screen.setcolour(colour)
     sdl2.SDL_RenderClear(screen.sdlrenderer)
@@ -43,5 +43,5 @@ def oscillo_render(screen, scrno, data, colours=[(255, 0, 0, 255), (0, 0, 255, 2
             point = (int(sect_width * (j - 1)),
                     height // 2 + (-1) ** i * datum * height // 2 // SCALE_DOWN)
             if prev is not None:
-                sdl2.SDL_RenderDrawLine(screen.sdlrenderer, *prev, *point)
+                sdl2.SDL_RenderDrawLine(screen.sdlrenderer, prev[0], prev[1], point[0], point[1])
             prev = point

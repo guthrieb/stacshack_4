@@ -32,7 +32,9 @@ class Client:
             if not i == -1:
                 split = text.split('|')
                 self.remainder = split[-1]
-                return json.loads(split[-2])
+                data = json.loads(split[-2])
+                print(len(data))
+                return data
 
 class Screen:
     def __init__(self, n, dimensions):

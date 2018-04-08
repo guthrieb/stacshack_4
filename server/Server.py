@@ -11,10 +11,10 @@ from file_player import Player
 TCP_IP = 'localhost'
 TCP_PORT = Config.PORT
 BUFFER_SIZE = 20  # Normally 1024, but we want fast response
-FILENAME = "test_files/test.wav"
+FILENAME = "test_files/test_marley.wav"
 
-def thread_handler(conn, addr):
-    results = handle_file(FILENAME)
+def thread_handler(conn, addr, multichannel=True):
+    results = handle_file(FILENAME, multichannel)
 
     pl = Player()
 
@@ -23,14 +23,15 @@ def thread_handler(conn, addr):
     old_i = 0
     curFreq = 0
     for ent in results:
-        data = ent
+        channel1 = ent[0]
         while Player.i <= old_i:
-            print("\n\n\n")
-            print(Player.i)
-            print(old_i)
+            None
 
         time.sleep(1 / 65)
-        json_data = json.dumps([data]) + "|"
+        if not multichannel:
+            json_data = json.dumps([channel1]) + "|"
+        else:
+            json_data = json.dumps(ent) + "|"
         old_i += 1
         print(json_data)
         conn.send(json_data.encode())

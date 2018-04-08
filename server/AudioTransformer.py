@@ -10,27 +10,29 @@ from operator import itemgetter
 import socket
 import json
 
-
-def main():
-    res = handle_file("test_files/mainMenuMusic.wav")
-    # print(res[0][4]))
-
-def handle_file(filename, multichannel=False):
+def handle_file(filename, multichannel=True):
     fs_rate, waveform = wavfile.read(filename)
-    print(fs_rate)
-    TIME_SAMPLE_DIFF = int(round((fs_rate/60)))
+    time_sample_diff = int(round((fs_rate/60)))
 
+    n_channels = len(waveform.shape)
+    print(n_channels)
     if not multichannel:
-        n_channels = len(waveform.shape)
         if n_channels > 1:
             waveform = waveform.sum(axis=1) / n_channels
+            results = [calc_results_for_channel(waveform, fs_rate, time_sample_diff)]
+            return results
+    else:
+        results = []
+        for i in range(0, n_channels):
+            channel = waveform[:,i]
+            results.append(calc_results_for_channel(channel, fs_rate, time_sample_diff))
+        return zip(*results)
 
-
+def calc_results_for_channel(waveform, fs_rate, time_sample_diff):
     total_samples = waveform.shape[0]
     results = []
-    for x in range(TIME_SAMPLE_DIFF, total_samples, TIME_SAMPLE_DIFF):
-
-        res1 = get_frequencies_against_amplitudes(waveform[x-TIME_SAMPLE_DIFF:x], fs_rate, TIME_SAMPLE_DIFF)
+    for x in range(time_sample_diff, total_samples, time_sample_diff):
+        res1 = get_frequencies_against_amplitudes(waveform[x-time_sample_diff:x], fs_rate, time_sample_diff)
 
         frequencies = res1[0]
         amplitudes = res1[1]
