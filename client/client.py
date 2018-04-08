@@ -35,9 +35,10 @@ class Client:
                 return json.loads(split[-2])
 
 class Screen:
-    def __init__(self, dimensions):
+    def __init__(self, n, dimensions):
         self.window = sdl2.ext.Window("visualiser", dimensions, flags = sdl2.SDL_WINDOW_RESIZABLE)
         self.renderer = sdl2.ext.Renderer(self.window)
+        self.n = n
 
     @property
     def width(self):
@@ -58,20 +59,27 @@ class Screen:
     def setcolour(self, colour):
         self.renderer.color = sdl2.ext.Color(*colour)
 
+    def show(self):
+        self.window.show()
+
 class Renderer:
-    def __init__(self, dimensions):
+    def __init__(self, n, dimensions):
         self.fg = (255, 255, 255, 255)
         self.bg = (000, 000, 000, 255)
-        self.screen = Screen(dimensions)
-        self.screen.window.show()
+        self.screens = []
+        for i in range(0, n):
+            screen = Screen(i, dimensions)
+            self.screens.append(screen)
+            screen.show()
 
     def draw(self, data):
-        self.screen.setcolour(self.bg)
-        sdl2.SDL_RenderClear(self.screen.sdlrenderer)
-        # pulse_render(self.screen, data)
-        updown_render(self.screen, data)
-        # oscillo_render(self.screen, data)
-        sdl2.SDL_RenderPresent(self.screen.renderer.sdlrenderer)
+        for screen in self.screens:
+            screen.setcolour(self.bg)
+            sdl2.SDL_RenderClear(screen.sdlrenderer)
+            # pulse_render(screen, len(self.screens), data)
+            updown_render(screen, len(self.screens), data)
+            # oscillo_render(screen, len(self.screens), data)
+            sdl2.SDL_RenderPresent(screen.renderer.sdlrenderer)
 
 def loop(client, renderer, events):
     while True:
@@ -88,7 +96,7 @@ def main(args):
     style = args[4]
 
     client = Client(host_ip, port, index)
-    renderer = Renderer((800, 600))
+    renderer = Renderer(2, (800, 600))
     events = Events()
     loop(client, renderer, events)
 
@@ -108,7 +116,7 @@ def test(args):
     while True:
         a = []
         b = []
-        for _ in range(1, 300):
+        for i in range(1, 300):
             a.append(random.randint(0, 50000))
             b.append(random.randint(0, 50000))
         renderer.draw([a, b])
