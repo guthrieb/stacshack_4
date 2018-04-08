@@ -5,19 +5,33 @@ from AudioTransformer import handle_file
 import json
 import Config
 import time
+from file_player import Player
 
 TCP_IP = '138.251.29.205'
 TCP_PORT = Config.PORT
 BUFFER_SIZE = 20  # Normally 1024, but we want fast response
+FILENAME = "test_files/test_muzzy.wav"
 
 def thread_handler(conn, addr):
-    results = handle_file("test_files/test_high_pitch.wav", 20000)
+    results = handle_file(FILENAME)
 
+    pl = Player()
+
+    th.start_new_thread(pl.play_music, (FILENAME,))
+
+    old_i = 0
     curFreq = 0
     for ent in results:
-        data = [ent.tolist()]
-        json_data = json.dumps(data) + "|"
+        data = ent
+        while Player.i <= old_i:
+            print("\n\n\n")
+            print(Player.i)
+            print(old_i)
 
+        time.sleep(1 / 65)
+        json_data = json.dumps([data]) + "|"
+        old_i += 1
+        print(json_data)
         conn.send(json_data.encode())
 
 def main():

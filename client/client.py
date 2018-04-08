@@ -1,9 +1,13 @@
+#!/bin/env python3
+import json
 import sdl2
 import struct
 import socket
 import random
 import sdl2.ext
 import sys
+
+from drawers import *
 
 class Events:
     def poll(self):
@@ -16,15 +20,19 @@ class Client:
         self.running = False
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((ip, port))
-        self.sock.setblocking(False)
+        self.sock.setblocking(True)
+        self.remainder = ''
 
     def receive(self):
-        try:
-            data, addr = self.recvfrom(1024)
-            return json.loads(data)
-        except json.decoder.JSONDecodeError as e:
-            print(message)
-            sys.exit(1)
+        text = self.remainder
+        while True:
+            mess = self.sock.recv(1024).decode()
+            text += mess
+            i = text.find('|')
+            if not i == -1:
+                split = text.split('|')
+                self.remainder = split[-1]
+                return json.loads(split[-2])
 
 class Screen:
     def __init__(self, dimensions):
@@ -39,6 +47,14 @@ class Screen:
     def height(self):
         return self.window.size[1]
 
+    @property
+    def dimensions(self):
+        return self.window.size
+
+    @property
+    def sdlrenderer(self):
+        return self.renderer.sdlrenderer
+
     def setcolour(self, colour):
         self.renderer.color = sdl2.ext.Color(*colour)
 
@@ -51,18 +67,10 @@ class Renderer:
 
     def draw(self, data):
         self.screen.setcolour(self.bg)
-        sdl2.SDL_RenderClear(self.screen.renderer.sdlrenderer)
-        width = self.screen.width
-        height = self.screen.height
-        sect_width = width / len(data)
-        self.screen.setcolour(self.fg)
-        for i, datum in enumerate(data):
-            bar = sdl2.SDL_Rect(
-                    int(i * sect_width),
-                    height // 2,
-                    int(sect_width) + 1,
-                    -datum * height // 200)
-            sdl2.SDL_RenderFillRect(self.screen.renderer.sdlrenderer, bar)
+        sdl2.SDL_RenderClear(self.screen.sdlrenderer)
+        # pulse_render(self.screen, data)
+        updown_render(self.screen, data)
+        # oscillo_render(self.screen, data)
         sdl2.SDL_RenderPresent(self.screen.renderer.sdlrenderer)
 
 def loop(client, renderer, events):
@@ -98,11 +106,15 @@ def test(args):
     renderer = Renderer((800, 600))
     events = Events()
     while True:
-        data = []
+        a = []
+        b = []
         for _ in range(1, 300):
-            data.append(random.randint(-100, 100))
-        renderer.draw(data)
+            a.append(random.randint(0, 50000))
+            b.append(random.randint(0, 50000))
+        renderer.draw([a, b])
         events.poll()
 
 if __name__ == '__main__':
-    sys.exit(test(sys.argv))
+    # sys.exit(test(sys.argv))
+    # sys.exit(hello(sys.argv))
+    sys.exit(main(sys.argv))

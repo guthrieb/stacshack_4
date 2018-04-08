@@ -10,36 +10,36 @@ from operator import itemgetter
 import socket
 import json
 
-TIME_SAMPLE_DIFF = 1000
 
 def main():
-    handle_file("test_files/test.wav")
+    res = handle_file("test_files/mainMenuMusic.wav")
+    # print(res[0][4]))
 
 def handle_file(filename, multichannel=False):
     fs_rate, waveform = wavfile.read(filename)
+    print(fs_rate)
+    TIME_SAMPLE_DIFF = int(round((fs_rate/60)))
 
     if not multichannel:
         n_channels = len(waveform.shape)
         if n_channels > 1:
             waveform = waveform.sum(axis=1) / n_channels
-        total_samples = waveform.shape[0]
 
-    print(len(waveform))
-    print(total_samples)
 
+    total_samples = waveform.shape[0]
     results = []
-    for x in range(20000, total_samples, 20000):
-        print("Calculating, ", x)
-        res1 = get_frequencies_against_amplitudes(waveform[x-20000:x], fs_rate, 20000)
+    for x in range(TIME_SAMPLE_DIFF, total_samples, TIME_SAMPLE_DIFF):
+
+        res1 = get_frequencies_against_amplitudes(waveform[x-TIME_SAMPLE_DIFF:x], fs_rate, TIME_SAMPLE_DIFF)
 
         frequencies = res1[0]
         amplitudes = res1[1]
 
-        print(len(frequencies))
+        results.append(amplitudes)
 
-    return [results]
+    return results
 
-def get_frequencies_against_amplitudes(waveform, sampling_rate, number_of_samples, plotting=True):
+def get_frequencies_against_amplitudes(waveform, sampling_rate, number_of_samples, plotting=False):
     secs = number_of_samples / float(sampling_rate)
     sampling_period = 1.0/sampling_rate
     time_periods = scipy.arange(0, secs, sampling_period)
@@ -62,7 +62,7 @@ def get_frequencies_against_amplitudes(waveform, sampling_rate, number_of_sample
         plt.ylabel('Count single-sided')
         plt.show()
 
-    return (freqs_x, abs(ampt_y))
+    return (freqs_x.tolist(), abs(ampt_y).tolist())
 
 
 def pad_waveform(waveform):
